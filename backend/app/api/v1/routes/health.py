@@ -15,4 +15,4 @@ router = APIRouter()
 @router.get("/health")
 def health_check() -> dict[str, str]:
     """Return a simple OK status to confirm the API is alive."""
-    return {"status": "ok"}
+    return {"status": "Ok"}
