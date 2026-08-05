@@ -1,30 +1,43 @@
 """
 Chat endpoint.
 
-Sprint 2 scope: accept a validated message, return a placeholder
-response. No AI model is called here yet — this route exists to
-establish the request/response pipeline that later sprints will
-plug real logic into.
+Sprint 3 scope: this route is now "thin" — it only handles HTTP
+concerns (accepting the validated request, shaping the response).
+All business logic lives in ChatService.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from app.models.chat import ChatRequest, ChatResponse
+from app.services.chat_service import ChatService
 
 router = APIRouter()
 
 
-@router.post("/chat", response_model=ChatResponse)
-def chat(request: ChatRequest) -> ChatResponse:
+def get_chat_service() -> ChatService:
     """
-    Accept a chat message and return a placeholder response.
+    Provide a ChatService instance.
 
-    Pydantic validates the incoming body against ChatRequest before
-    this function body even runs — an invalid payload (e.g. missing
-    `message`, or `message` not a string) is automatically rejected
-    with a 422 response, no manual validation code needed here.
+    A small dependency function rather than a module-level global so
+    that tests (or a future Sprint) can swap in a different service
+    implementation without touching this route.
     """
-    return ChatResponse(
-        response="Vision received your message.",
-        message=request.message,
-    )
+    return ChatService()
+
+
+@router.post("/chat", response_model=ChatResponse)
+def chat(
+    request: ChatRequest,
+    service: ChatService = Depends(get_chat_service),
+) -> ChatResponse:
+    """
+    Accept a chat message and return Vision's response.
+
+    Delegates response generation to ChatService — this function's
+    only job is to receive the validated request, call the service,
+    and shape the result into a ChatResponse.
+    """
+    reply = service.generate_response(
+    message=request.message
+)
+    return ChatResponse(response=reply, message=request.message)

@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     API_V1_PREFIX: str = "/api/v1"
 
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-2.5-flash"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
