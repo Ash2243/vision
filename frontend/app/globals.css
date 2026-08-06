@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens.
+ *
+ * Dark slate base with a single subtle indigo accent, per the
+ * Sprint 5 brief. Kept as CSS variables (not hardcoded in
+ * components) so theming — including a future light mode, when the
+ * header's theme toggle placeholder becomes real — only requires
+ * changing values here.
+ */
+:root {
+  --background: #0a0c10;
+  --surface: #12151b;
+  --surface-hover: #1a1e26;
+  --border: #232733;
+  --foreground: #e6e8ec;
+  --muted: #868d9a;
+  --accent: #6c6ff0;
+  --accent-soft: rgba(108, 111, 240, 0.12);
+  --danger: #e5726b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+:root {
+  /*
+   * A system font stack rather than a fetched web font: no external
+   * network dependency at build time, no FOUC, and each OS's native
+   * UI face already reads as "developer tool" (the same category of
+   * choice as GitHub, Linear, Vercel's own dashboard).
+   */
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono",
+    Consolas, "Liberation Mono", monospace;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html,
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+/* Message enter animation: subtle fade + translate, per the brief. */
+@keyframes message-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-enter {
+  animation: message-enter 0.25s ease-out;
+}
+
+/* Typing indicator dots. */
+.typing-dots span {
+  animation: typing-dot 1.2s infinite;
+  opacity: 0.2;
+}
+
+.typing-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.2;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+/* Vision mark pulse (typing indicator avatar): arcs light up in
+   sequence from outer to inner, echoing the brand mark rather than
+   a generic spinner. */
+.vision-arc-1,
+.vision-arc-2,
+.vision-arc-3 {
+  animation: arc-pulse 1.4s ease-in-out infinite;
+}
+
+.vision-arc-2 {
+  animation-delay: 0.15s;
+}
+
+.vision-arc-3 {
+  animation-delay: 0.3s;
+}
+
+@keyframes arc-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Custom scrollbar — thin, unobtrusive, matches the dark surface. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 8px;
+}
+
+/* Respect reduced-motion preferences. */
+@media (prefers-reduced-motion: reduce) {
+  .message-enter,
+  .typing-dots span,
+  .vision-arc-1,
+  .vision-arc-2,
+  .vision-arc-3 {
+    animation: none;
+  }
+}
+
+/* Markdown content spacing inside assistant bubbles. */
+.prose-vision :where(ul, ol) {
+  margin-top: 0;
+}

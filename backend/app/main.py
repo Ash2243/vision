@@ -2,13 +2,14 @@
 Application entrypoint.
 
 Creates the FastAPI app, wires up logging and configuration, mounts
-the versioned API router, and registers error handling for AI
-provider failures. Run locally with:
+the versioned API router, enables CORS for the frontend, and
+registers error handling for AI provider failures. Run locally with:
 
     uvicorn app.main:app --reload
 """
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.v1.router import api_router
@@ -20,6 +21,19 @@ settings = get_settings()
 configure_logging()
 
 app = FastAPI(title=settings.APP_NAME)
+
+# Required for the Next.js frontend (Sprint 5) to call this API from
+# the browser — without it, every request is blocked client-side
+# regardless of whether the backend itself works correctly.
+# CORS_ORIGINS is a comma-separated list read from .env, so allowed
+# origins differ between local dev and a future production deploy
+# without a code change.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[origin.strip() for origin in settings.CORS_ORIGINS.split(",")],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
+)
 
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 

@@ -25,7 +25,11 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = "/api/v1"
 
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-2.5-flash"
+    GEMINI_MODEL: str = "gemini-3.6-flash"
+
+    # Comma-separated list of frontend origins allowed to call this
+    # API from the browser. Defaults to the local Next.js dev server.
+    CORS_ORIGINS: str = "http://localhost:3000"
 
     model_config = SettingsConfigDict(
         env_file=".env",

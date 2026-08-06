@@ -1,4 +1,6 @@
+# -------------------------
 # Python
+# -------------------------
 __pycache__/
 *.py[cod]
 *.pyo
@@ -10,16 +12,53 @@ env/
 
 # Environment Variables
 .env
+.env.local
+backend/.env
 
+# -------------------------
+# Node / Next.js
+# -------------------------
+node_modules/
+frontend/node_modules/
+
+.next/
+frontend/.next/
+
+out/
+dist/
+
+# npm logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# -------------------------
 # VS Code
+# -------------------------
 .vscode/
 
+# -------------------------
 # OS Files
+# -------------------------
 .DS_Store
 Thumbs.db
 
+# -------------------------
 # Jupyter
+# -------------------------
 .ipynb_checkpoints/
 
+# -------------------------
 # Logs
+# -------------------------
 *.log
+
+# Node / Next.js
+node_modules/
+.next/
+frontend/.next/
+
+# Build output
+out/
+dist/
