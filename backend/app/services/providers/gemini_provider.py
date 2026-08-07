@@ -1,25 +1,38 @@
 """
 Gemini provider.
 
-Wraps Google's Gemini API behind a plain generate(prompt) -> str
-method. Sprint 4 scope: a single concrete provider, no abstract base
-class or multi-provider switching yet — that's explicitly deferred to
-a later sprint per the Sprint 4 brief.
+Wraps Google's Gemini API. Sprint 6 scope: accepts a conversation
+(list of Message) instead of a single prompt string, and translates
+our domain roles into Gemini's own vocabulary. Still a single
+concrete provider — no abstract base class or multi-provider
+switching yet, per the Sprint 4 brief and unchanged since.
 """
 
 import logging
 
 from google import genai
 from google.genai import errors as genai_errors
+from google.genai import types
 
 from app.core.config import get_settings
+from app.models.chat import Message
 from app.services.exceptions import AIProviderError
 
 logger = logging.getLogger(__name__)
 
+# Our domain uses "user" / "assistant" (and "system", handled
+# separately — see ChatService). Gemini expects "user" / "model".
+# ChatService only ever passes user/assistant messages here (system
+# messages are filtered out before this point), so this map only
+# needs to cover those two.
+_ROLE_TO_GEMINI = {
+    "user": "user",
+    "assistant": "model",
+}
+
 
 class GeminiProvider:
-    """Sends prompts to Google Gemini and returns plain text responses."""
+    """Sends a conversation to Google Gemini and returns a plain text response."""
 
     def __init__(self) -> None:
         settings = get_settings()
@@ -34,18 +47,39 @@ class GeminiProvider:
         self._client = genai.Client(api_key=settings.GEMINI_API_KEY)
         self._model = settings.GEMINI_MODEL
 
-    def generate(self, prompt: str) -> str:
+    def generate(
+        self,
+        messages: list[Message],
+        system_instruction: str | None = None,
+    ) -> str:
         """
-        Send a prompt to Gemini and return the plain text response.
+        Send a conversation to Gemini and return the plain text response.
 
-        Raises AIProviderError on any failure. Callers never see raw
-        SDK exceptions, HTTP status details, or the API key — only a
-        safe, generic message suitable for surfacing to a client.
+        `messages` should contain only user/assistant turns, oldest
+        first — ChatService is responsible for stripping out system
+        messages and trimming history before calling this. Raises
+        AIProviderError on any failure; callers never see raw SDK
+        exceptions, HTTP status details, or the API key.
         """
+        contents = [
+            types.Content(
+                role=_ROLE_TO_GEMINI[m.role],
+                parts=[types.Part.from_text(text=m.content)],
+            )
+            for m in messages
+        ]
+
+        config = (
+            types.GenerateContentConfig(system_instruction=system_instruction)
+            if system_instruction
+            else None
+        )
+
         try:
             response = self._client.models.generate_content(
                 model=self._model,
-                contents=prompt,
+                contents=contents,
+                config=config,
             )
         except genai_errors.APIError as exc:
             logger.error("Gemini API error (code=%s): %s", exc.code, exc.message)

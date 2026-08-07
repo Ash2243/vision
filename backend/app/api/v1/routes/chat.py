@@ -31,13 +31,11 @@ def chat(
     service: ChatService = Depends(get_chat_service),
 ) -> ChatResponse:
     """
-    Accept a chat message and return Vision's response.
+    Accept a conversation and return Vision's response.
 
     Delegates response generation to ChatService — this function's
     only job is to receive the validated request, call the service,
     and shape the result into a ChatResponse.
     """
-    reply = service.generate_response(
-    message=request.message
-)
-    return ChatResponse(response=reply, message=request.message)
+    reply = service.generate_response(request.messages)
+    return ChatResponse(response=reply)

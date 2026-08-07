@@ -7,7 +7,7 @@
  * only touches this file, not the UI or state layer.
  */
 
-import type { ChatRequestBody, ChatResponseBody } from "./types";
+import type { ChatMessage, ChatRequestBody, ChatResponseBody } from "./types";
 
 /**
  * Base URL for the Vision backend.
@@ -27,15 +27,30 @@ export class ChatApiError extends Error {
 }
 
 /**
- * Send a message to Vision's backend and return its response text.
+ * Send the conversation so far to Vision's backend and return the
+ * new response text.
+ *
+ * Sprint 6: takes the full conversation (not just the latest
+ * message) so the backend — which holds no state of its own — can
+ * give the AI provider the context it needs for follow-up questions.
+ *
+ * Messages with status "error" (failed-send bubbles shown in the UI)
+ * are filtered out here rather than sent as real conversation turns
+ * — they were never a real assistant reply, and including them would
+ * feed the AI provider a false turn instead of just history it never
+ * actually produced.
  *
  * Throws ChatApiError for any failure — validation errors (422),
  * upstream AI provider failures (502), or the backend being
  * unreachable at all (network error). Callers only need one catch
  * block; they don't need to distinguish HTTP status codes themselves.
  */
-export async function sendChatMessage(message: string): Promise<string> {
-  const body: ChatRequestBody = { message };
+export async function sendChatMessage(conversation: ChatMessage[]): Promise<string> {
+  const body: ChatRequestBody = {
+    messages: conversation
+      .filter((m) => m.status !== "error")
+      .map((m) => ({ role: m.role, content: m.content })),
+  };
 
   let res: Response;
   try {

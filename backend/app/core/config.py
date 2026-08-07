@@ -31,6 +31,14 @@ class Settings(BaseSettings):
     # API from the browser. Defaults to the local Next.js dev server.
     CORS_ORIGINS: str = "http://localhost:3000"
 
+    # Sprint 6: the backend is stateless — the client sends the full
+    # conversation with every request. This caps how many of the most
+    # recent messages ChatService will forward to the AI provider, so
+    # payloads (and cost/latency) don't grow unbounded as a
+    # conversation gets long. Counts individual messages, not turns
+    # (10 messages ≈ 5 user/assistant exchanges).
+    MAX_HISTORY_MESSAGES: int = 10
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
